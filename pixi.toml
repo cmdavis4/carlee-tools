@@ -1,0 +1,68 @@
+[workspace]
+name = "cloudy-core"
+version = "1.0.0"
+description = "Core utilities and type definitions for cloudy ecosystem"
+channels = ["conda-forge"]
+platforms = ["linux-64", "osx-64", "osx-arm64"]
+
+[dependencies]
+# Core required dependencies
+python = ">=3.8"
+typing-extensions = "*"
+pip = "*"
+numpy = "*"
+
+[feature.scientific.dependencies]
+# Optional scientific dependencies for extended functionality
+xarray = "*"
+pandas = "*"
+netcdf4 = "*"
+
+[feature.test.dependencies]
+# Testing tools
+pytest = ">=7.0"
+pytest-cov = "*"
+
+[feature.dev.dependencies]
+# Development tools (linting, formatting, type checking)
+black = "*"
+ruff = "*"
+mypy = "*"
+
+[environments]
+# Minimal environment - only required dependencies + testing
+# Tests core functionality with numpy
+minimal = {features = ["test"], solve-group = "minimal"}
+
+# Full environment - includes scientific dependencies + testing
+# Tests complete functionality with xarray, pandas, etc.
+full = {features = ["scientific", "test"], solve-group = "full"}
+
+# Development environment - includes everything
+# For active development and testing
+dev = {features = ["scientific", "test", "dev"], solve-group = "dev"}
+
+[tasks]
+# Install the package in editable mode
+install = "pip install -e ."
+
+# Run all tests
+test = {cmd = "pytest tests/ -v", depends-on = ["install"]}
+
+# Run tests with coverage
+test-cov = {cmd = "pytest tests/ -v --cov=cloudy_core --cov-report=term-missing", depends-on = ["install"]}
+
+# Format code
+format = "black cloudy_core/"
+
+# Lint code
+lint = "ruff check cloudy_core/"
+
+# Type check
+typecheck = "mypy cloudy_core/"
+
+# Run all quality checks
+check = {depends-on = ["format", "lint", "typecheck"]}
+
+# Clean up build artifacts and caches
+clean = "rm -rf build/ dist/ *.egg-info .pytest_cache/ .coverage .mypy_cache/ __pycache__/ cloudy_core/__pycache__/"

@@ -278,7 +278,7 @@ def str_to_dt(
             possible_calls = [
                 lambda s: dt.datetime.fromisoformat(s),
             ] + [
-                lambda s: dt.datetime.strptime(s, fmt) for fmt in ALL_CUSTOM_DT_FORMATS
+                lambda s, fmt=fmt: dt.datetime.strptime(s, fmt) for fmt in ALL_CUSTOM_DT_FORMATS
             ]
 
             # Add pandas parsing if available
