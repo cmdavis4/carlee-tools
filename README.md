@@ -1,6 +1,6 @@
 # cloudy-core
 
-Core utilities and type definitions for cloudy atmospheric modeling packages.
+Core utilities and type definitions for cloudy ecosystem of atmospheric modeling packages.
 
 ## Overview
 
@@ -62,10 +62,10 @@ nested = TwoWayDict({'a': {'x': 1, 'y': 2}, 'b': {'x': 3, 'y': 4}})
 
 ## Dependencies
 
-- numpy
 - typing-extensions (Python < 3.10)
 
 Optional dependencies for full functionality:
+- numpy
 - xarray (for NetCDF support)
 - pandas (for CSV support and enhanced datetime parsing)
 
