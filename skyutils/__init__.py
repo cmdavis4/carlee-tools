@@ -1,18 +1,18 @@
 """
-cloudy-core: Core utilities and type definitions for cloudy atmospheric modeling packages.
+skyutils: Core utilities, types, and plotting for atmospheric science.
 
-This package provides shared utilities and type definitions that are used across
-the cloudy ecosystem of atmospheric modeling and visualization packages.
+Provides shared utilities and type definitions for atmospheric modeling packages.
 """
 
 __version__ = "1.0.0"
 
-# Import core modules
+# Import submodules
 from . import utils
-from . import types_core
+from . import types_skyutils
+from . import plotting
 
-# Import commonly used types for convenience
-from .types_core import (
+# Re-export commonly used types
+from .types_skyutils import (
     PathLike,
     ConfigDict,
     BlenderObject,
@@ -20,7 +20,7 @@ from .types_core import (
     NumpyNumeric,
 )
 
-# Import commonly used utilities for convenience
+# Re-export commonly used utilities
 from .utils import (
     dt_to_str,
     str_to_dt,
@@ -36,7 +36,8 @@ from .utils import (
 __all__ = [
     # Modules
     "utils",
-    "types_core",
+    "types_skyutils",
+    "plotting",
     # Types
     "PathLike",
     "ConfigDict",

@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from cloudy_core.utils import (
+from skyutils.utils import (
     dt_to_str,
     str_to_dt,
     current_dt_str,

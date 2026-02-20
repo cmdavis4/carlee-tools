@@ -1,7 +1,7 @@
 [workspace]
-name = "cloudy-core"
+name = "skyutils"
 version = "1.0.0"
-description = "Core utilities and type definitions for cloudy ecosystem"
+description = "Core utilities, types, and plotting for atmospheric science"
 channels = ["conda-forge"]
 platforms = ["linux-64", "osx-64", "osx-arm64"]
 
@@ -11,10 +11,14 @@ python = ">=3.8"
 typing-extensions = "*"
 pip = "*"
 numpy = "*"
+matplotlib = ">=3.0"
+xarray = "*"
+metpy = "*"
+tqdm = "*"
+imageio = "*"
 
 [feature.scientific.dependencies]
-# Optional scientific dependencies for extended functionality
-xarray = "*"
+# Optional scientific dependencies
 pandas = "*"
 netcdf4 = "*"
 
@@ -24,22 +28,21 @@ pytest = ">=7.0"
 pytest-cov = "*"
 
 [feature.dev.dependencies]
-# Development tools (linting, formatting, type checking)
+# Development tools
 black = "*"
 ruff = "*"
 mypy = "*"
+ipython = "*"
+jupyter = "*"
 
 [environments]
-# Minimal environment - only required dependencies + testing
-# Tests core functionality with numpy
+# Minimal environment - core dependencies + testing
 minimal = {features = ["test"], solve-group = "minimal"}
 
 # Full environment - includes scientific dependencies + testing
-# Tests complete functionality with xarray, pandas, etc.
 full = {features = ["scientific", "test"], solve-group = "full"}
 
 # Development environment - includes everything
-# For active development and testing
 dev = {features = ["scientific", "test", "dev"], solve-group = "dev"}
 
 [tasks]
@@ -50,19 +53,19 @@ install = "pip install -e ."
 test = {cmd = "pytest tests/ -v", depends-on = ["install"]}
 
 # Run tests with coverage
-test-cov = {cmd = "pytest tests/ -v --cov=cloudy_core --cov-report=term-missing", depends-on = ["install"]}
+test-cov = {cmd = "pytest tests/ -v --cov=skyutils --cov-report=term-missing --cov-report=html", depends-on = ["install"]}
 
 # Format code
-format = "black cloudy_core/"
+format = "black skyutils/ tests/"
 
 # Lint code
-lint = "ruff check cloudy_core/"
+lint = "ruff check skyutils/ tests/"
 
 # Type check
-typecheck = "mypy cloudy_core/"
+typecheck = "mypy skyutils/"
 
 # Run all quality checks
 check = {depends-on = ["format", "lint", "typecheck"]}
 
 # Clean up build artifacts and caches
-clean = "rm -rf build/ dist/ *.egg-info .pytest_cache/ .coverage .mypy_cache/ __pycache__/ cloudy_core/__pycache__/"
+clean = "rm -rf build/ dist/ *.egg-info .pytest_cache/ .coverage .mypy_cache/ __pycache__/ skyutils/__pycache__/ tests/__pycache__/ htmlcov/"

@@ -7,7 +7,7 @@ pytest.importorskip("numpy")
 
 import numpy as np
 
-from cloudy_core.utils import (
+from skyutils.utils import (
     is_evenly_spaced,
     spacing,
     maybe_random_choice,

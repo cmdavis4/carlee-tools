@@ -1,11 +1,11 @@
-"""Tests for type definitions in cloudy_core.types_core"""
+"""Tests for type definitions in skyutils.types_skyutils"""
 
 import sys
 from pathlib import Path
 
 import pytest
 
-from cloudy_core.types_core import PathLike, ConfigDict
+from skyutils.types_skyutils import PathLike, ConfigDict
 
 
 def test_pathlike_import():
@@ -20,7 +20,7 @@ def test_configdict_import():
 
 def test_blender_types_import():
     """Test that Blender types can be imported (should work even without Blender)"""
-    from cloudy_core.types_core import BlenderObject, BlenderCollection
+    from skyutils.types_skyutils import BlenderObject, BlenderCollection
 
     # These should be importable but will be Any when bpy is not available
     assert BlenderObject is not None
@@ -34,7 +34,7 @@ def test_blender_types_import():
 def test_numpy_numeric_import():
     """Test that NumpyNumeric type can be imported"""
     try:
-        from cloudy_core.types_core import NumpyNumeric
+        from skyutils.types_skyutils import NumpyNumeric
         assert NumpyNumeric is not None
     except ImportError:
         pytest.skip("NumPy not available")

@@ -11,14 +11,13 @@ from warnings import warn
 import pickle as pkl
 from functools import wraps
 
-from .types_core import PathLike, NumpyNumeric
+from .types_skyutils import PathLike, NumpyNumeric
 
 DEFAULT_SEED = 137504983571204
 NUMERICAL_DT_FORMAT = r"%Y%m%d%H%M%S"
-RAMS_DT_FORMAT = r"%Y-%m-%d-%H%M%S"
 HUMAN_DT_FORMAT = r"%Y-%m-%d %H:%M:%S"
 
-ALL_CUSTOM_DT_FORMATS = [NUMERICAL_DT_FORMAT, RAMS_DT_FORMAT, HUMAN_DT_FORMAT]
+ALL_CUSTOM_DT_FORMATS = [NUMERICAL_DT_FORMAT, HUMAN_DT_FORMAT]
 
 
 class TwoWayDict:
