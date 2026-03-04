@@ -1,0 +1,5 @@
+include README.md
+include LICENSE
+include pytest.ini
+recursive-include skyutils *.py
+include skyutils/py.typed

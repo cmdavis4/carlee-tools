@@ -1,14 +1,12 @@
 """
-Type definitions for the cloudy package.
+Type definitions for the skyutils package.
 
 This module provides type aliases and custom types used throughout the package.
-It includes conditional imports for Blender-specific types to maintain compatibility
-when running outside of the Blender environment.
 """
 
 from pathlib import Path
 import sys
-from typing import Any, Dict, Union
+from typing import Union
 
 # pyright: reportRedeclaration=false
 
@@ -27,32 +25,6 @@ if TypeAlias is not None:
     PathLike: TypeAlias = Union[str, Path]
 else:
     PathLike = Union[str, Path]
-
-# Blender-specific types (conditionally imported)
-try:
-    import bpy
-
-    if TypeAlias is not None:
-        BlenderObject: TypeAlias = bpy.types.Object
-        BlenderCollection: TypeAlias = bpy.types.Collection
-    else:
-        BlenderObject = bpy.types.Object
-        BlenderCollection = bpy.types.Collection
-except ImportError:
-    # When bpy is not available, use Any as placeholder
-    # This allows the code to import successfully outside of Blender
-    if TypeAlias is not None:
-        BlenderObject: TypeAlias = Any
-        BlenderCollection: TypeAlias = Any
-    else:
-        BlenderObject = Any
-        BlenderCollection = Any
-
-# Configuration dictionary type for storing arbitrary configuration data
-if TypeAlias is not None:
-    ConfigDict: TypeAlias = Dict[str, Any]
-else:
-    ConfigDict = Dict[str, Any]
 
 # Optional type if numpy is present
 try:

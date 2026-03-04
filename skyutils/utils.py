@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional, Union, Callable, Tuple
 from warnings import warn
 import pickle as pkl
 from functools import wraps
+import xarray as xr
 
 from .types_skyutils import PathLike, NumpyNumeric
 
@@ -172,6 +173,18 @@ class TwoWayDict:
         return "\n".join(html)
 
 
+def to_t_minutes(time_values, start_time):
+    # Massage start time if needed
+    try:
+        start_time = start_time.to_numpy()
+    except:
+        pass
+    if isinstance(time_values, (np.ndarray, xr.DataArray)):
+        return (time_values - start_time).dt.total_seconds() // 60
+    else:
+        return [int((x - start_time) / np.timedelta64(1, "m")) for x in time_values]
+
+
 def dt_to_str(dt_like: Any, date_format: str = NUMERICAL_DT_FORMAT) -> str:
     """
     Convert datetime-like objects to formatted strings.
@@ -277,7 +290,8 @@ def str_to_dt(
             possible_calls = [
                 lambda s: dt.datetime.fromisoformat(s),
             ] + [
-                lambda s, fmt=fmt: dt.datetime.strptime(s, fmt) for fmt in ALL_CUSTOM_DT_FORMATS
+                lambda s, fmt=fmt: dt.datetime.strptime(s, fmt)
+                for fmt in ALL_CUSTOM_DT_FORMATS
             ]
 
             # Add pandas parsing if available

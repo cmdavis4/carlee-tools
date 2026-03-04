@@ -38,10 +38,15 @@ def format_t_str(t: Any, strftime: str = "%Y-%m-%d %H:%M:%S") -> Any:
         Formatted string or original object if formatting fails
     """
     try:
+        # First try numpy datetime64
         return t.astype("datetime64[s]").item().strftime(strftime)
-    except:
-        # If it's not coerceable to a datetime, just leave it as is
-        return t
+    except (AttributeError, TypeError):
+        # Try standard datetime strftime
+        try:
+            return t.strftime(strftime)
+        except (AttributeError, TypeError):
+            # If it's not coerceable to a datetime, just leave it as is
+            return t
 
 
 def clean_legend(
@@ -200,7 +205,20 @@ def get_nth_color(n):
 
 
 def get_next_color(ax):
-    return next(ax._get_lines.prop_cycler)["color"]
+    """Get the next color from the axes color cycle.
+
+    Args:
+        ax: Matplotlib axes object
+
+    Returns:
+        str: The next color in the cycle
+    """
+    # In modern matplotlib, we need to plot an invisible line to advance the color cycle
+    # and get the color that was used
+    line = ax.plot([], [])[0]
+    color = line.get_color()
+    line.remove()
+    return color
 
 
 def get_cmap(name):
