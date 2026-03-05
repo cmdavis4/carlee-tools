@@ -1,5 +1,5 @@
 """
-skyutils: Core utilities, types, and plotting for atmospheric science.
+carlee_tools: Core utilities, types, and plotting for atmospheric science.
 
 Provides shared utilities and type definitions for atmospheric modeling packages.
 """
@@ -8,11 +8,11 @@ __version__ = "1.0.0"
 
 # Import submodules
 from . import utils
-from . import types_skyutils
+from . import types_carlee_tools
 from . import plotting
 
 # Re-export commonly used types
-from .types_skyutils import (
+from .types_carlee_tools import (
     PathLike,
     NumpyNumeric,
 )
@@ -23,7 +23,7 @@ from .utils import *
 __all__ = [
     # Modules
     "utils",
-    "types_skyutils",
+    "types_carlee_tools",
     "plotting",
     # Types
     "PathLike",

@@ -11,7 +11,7 @@ import tempfile
 
 def test_clean_legend_basic():
     """Test clean_legend with basic plot."""
-    from skyutils.plotting import clean_legend
+    from carlee_tools.plotting import clean_legend
 
     fig, ax = plt.subplots()
     ax.plot([1, 2, 3], [1, 2, 3], label='test_line')
@@ -25,7 +25,7 @@ def test_clean_legend_basic():
 
 def test_get_nth_color():
     """Test getting nth color from color cycle."""
-    from skyutils.plotting import get_nth_color
+    from carlee_tools.plotting import get_nth_color
 
     color = get_nth_color(0)
     assert isinstance(color, str)
@@ -35,7 +35,7 @@ def test_get_nth_color():
 
 def test_get_next_color():
     """Test getting next color from axes."""
-    from skyutils.plotting import get_next_color
+    from carlee_tools.plotting import get_next_color
 
     fig, ax = plt.subplots()
     color1 = get_next_color(ax)
@@ -50,7 +50,7 @@ def test_get_next_color():
 
 def test_prepend_axes_letters():
     """Test prepending letters to axes titles."""
-    from skyutils.plotting import prepend_axes_letters
+    from carlee_tools.plotting import prepend_axes_letters
 
     fig, axs = plt.subplots(2, 2)
     axs[0, 0].set_title("First")
@@ -65,7 +65,7 @@ def test_prepend_axes_letters():
 
 def test_fig_multisave():
     """Test saving figure to multiple directories."""
-    from skyutils.plotting import fig_multisave
+    from carlee_tools.plotting import fig_multisave
 
     with tempfile.TemporaryDirectory() as tmpdir:
         tmppath = Path(tmpdir)
@@ -86,7 +86,7 @@ def test_fig_multisave():
 
 def test_get_cmap():
     """Test getting colormap."""
-    from skyutils.plotting import get_cmap
+    from carlee_tools.plotting import get_cmap
     import matplotlib.colors
 
     cmap = get_cmap("viridis")
@@ -95,7 +95,7 @@ def test_get_cmap():
 
 def test_format_t_str():
     """Test timestamp formatting."""
-    from skyutils.plotting import format_t_str
+    from carlee_tools.plotting import format_t_str
     import datetime
 
     dt_obj = datetime.datetime(2020, 1, 1, 12, 30, 0)

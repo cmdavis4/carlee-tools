@@ -23,7 +23,7 @@ from typing import Any, Dict, List, Optional, Union, Tuple, Iterable, Callable
 import matplotlib.figure
 import matplotlib.axes
 
-from ..types_skyutils import PathLike
+from ..types_carlee_tools import PathLike
 
 
 def format_t_str(t: Any, strftime: str = "%Y-%m-%d %H:%M:%S") -> Any:

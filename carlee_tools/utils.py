@@ -12,7 +12,7 @@ import pickle as pkl
 from functools import wraps
 import xarray as xr
 
-from .types_skyutils import PathLike, NumpyNumeric
+from .types_carlee_tools import PathLike, NumpyNumeric
 
 DEFAULT_SEED = 137504983571204
 NUMERICAL_DT_FORMAT = r"%Y%m%d%H%M%S"

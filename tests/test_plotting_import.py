@@ -2,13 +2,13 @@
 
 def test_plotting_module_imports():
     """Test that plotting subpackage imports correctly."""
-    from skyutils import plotting
+    from carlee_tools import plotting
     assert plotting is not None
 
 
 def test_plotting_functions():
     """Test that key plotting functions are importable."""
-    from skyutils.plotting import (
+    from carlee_tools.plotting import (
         clean_legend,
         fig_multisave,
         plot_sounding,
@@ -28,9 +28,9 @@ def test_plotting_functions():
     assert callable(shifted_colormap)
 
 
-def test_plotting_from_skyutils():
-    """Test importing plotting from top-level skyutils."""
-    import skyutils
-    assert hasattr(skyutils, 'plotting')
-    assert hasattr(skyutils.plotting, 'clean_legend')
-    assert hasattr(skyutils.plotting, 'fig_multisave')
+def test_plotting_from_carlee_tools():
+    """Test importing plotting from top-level carlee_tools."""
+    import carlee_tools
+    assert hasattr(carlee_tools, 'plotting')
+    assert hasattr(carlee_tools.plotting, 'clean_legend')
+    assert hasattr(carlee_tools.plotting, 'fig_multisave')

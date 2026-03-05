@@ -1,32 +1,41 @@
-# cloudy-core
+# carlee-tools
 
-Core utilities and type definitions for cloudy ecosystem of atmospheric modeling packages.
+Core utilities, types, and plotting for atmospheric science.
 
 ## Overview
 
-`cloudy-core` provides shared utilities and type definitions that are used across the cloudy ecosystem of atmospheric modeling and visualization packages. This package serves as a common dependency for other cloudy packages.
+`carlee-tools` provides shared utilities and type definitions that are used across the carlee ecosystem of atmospheric modeling and visualization packages. This package serves as a common dependency for other carlee packages.
 
 ## Features
 
-- **Type Definitions**: Common type aliases for paths, configurations, and Blender objects
+- **Type Definitions**: Common type aliases for paths and configurations
 - **Datetime Utilities**: Functions for parsing and formatting datetime objects
 - **File I/O**: Convenient file reading/writing functions for common scientific data formats (NetCDF, CSV, pickle, NumPy)
 - **Data Utilities**: Helper functions for working with arrays, key-value pairs, and data structures
+- **Plotting Utilities**: Matplotlib helpers for creating publication-quality atmospheric science figures
 
 ## Installation
 
-Install from a local copy:
+Install from PyPI:
 
 ```bash
-pip install -e /path/to/cloudy-core
+pip install carlee-tools
+```
+
+Or install from source:
+
+```bash
+pip install -e /path/to/carlee-tools
 ```
 
 ## Usage
 
 ```python
-from cloudy_core import PathLike, dt_to_str, read_file, TwoWayDict
-from cloudy_core.utils import current_dt_str
-from cloudy_core.types_core import ConfigDict
+import carlee_tools
+from carlee_tools import PathLike, dt_to_str, read_file, TwoWayDict
+from carlee_tools.utils import current_dt_str
+from carlee_tools.types_carlee_tools import ConfigDict
+from carlee_tools.plotting import clean_legend, get_cmap
 
 # Use datetime utilities
 timestamp = current_dt_str()
@@ -36,14 +45,14 @@ data = read_file("data.nc")  # Automatically uses xarray for .nc files
 
 # Work with nested dictionaries
 nested = TwoWayDict({'a': {'x': 1, 'y': 2}, 'b': {'x': 3, 'y': 4}})
+
+# Create clean matplotlib legends
+clean_legend()
 ```
 
 ## Type Definitions
 
 - `PathLike`: Union of `str` and `Path` for file paths
-- `ConfigDict`: Dictionary for storing arbitrary configuration data
-- `BlenderObject`: Type alias for Blender objects (gracefully handles non-Blender environments)
-- `BlenderCollection`: Type alias for Blender collections
 - `NumpyNumeric`: Union of NumPy integer and floating types
 
 ## Key Utilities
@@ -62,12 +71,18 @@ nested = TwoWayDict({'a': {'x': 1, 'y': 2}, 'b': {'x': 3, 'y': 4}})
 
 ## Dependencies
 
+Core dependencies:
+- numpy
+- matplotlib>=3.0
+- xarray
+- metpy
+- tqdm
+- imageio
 - typing-extensions (Python < 3.10)
 
-Optional dependencies for full functionality:
-- numpy
-- xarray (for NetCDF support)
-- pandas (for CSV support and enhanced datetime parsing)
+Optional dependencies:
+- pandas (for enhanced CSV support)
+- netcdf4 (for NetCDF file writing)
 
 ## License
 

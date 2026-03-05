@@ -1,11 +1,11 @@
-"""Tests for type definitions in skyutils.types_skyutils"""
+"""Tests for type definitions in carlee_tools.types_carlee_tools"""
 
 import sys
 from pathlib import Path
 
 import pytest
 
-from skyutils.types_skyutils import PathLike
+from carlee_tools.types_carlee_tools import PathLike
 
 
 def test_pathlike_import():
@@ -20,7 +20,7 @@ def test_pathlike_import():
 def test_numpy_numeric_import():
     """Test that NumpyNumeric type can be imported"""
     try:
-        from skyutils.types_skyutils import NumpyNumeric
+        from carlee_tools.types_carlee_tools import NumpyNumeric
         assert NumpyNumeric is not None
     except ImportError:
         pytest.skip("NumPy not available")

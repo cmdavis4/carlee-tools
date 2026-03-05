@@ -7,7 +7,7 @@ pytest.importorskip("numpy")
 
 import numpy as np
 
-from skyutils.utils import (
+from carlee_tools.utils import (
     is_evenly_spaced,
     spacing,
     maybe_random_choice,

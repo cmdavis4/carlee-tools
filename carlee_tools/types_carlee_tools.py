@@ -1,5 +1,5 @@
 """
-Type definitions for the skyutils package.
+Type definitions for the carlee_tools package.
 
 This module provides type aliases and custom types used throughout the package.
 """
