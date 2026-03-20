@@ -31,5 +31,6 @@ try:
     import numpy as np
 
     NumpyNumeric: TypeAlias = Union[np.integer, np.floating]
+    ArrayLike: TypeAlias = Union[list, tuple, np.ndarray]
 except ImportError:
     pass

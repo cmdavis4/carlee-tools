@@ -12,7 +12,7 @@ import pickle as pkl
 from functools import wraps
 import xarray as xr
 
-from .types_carlee_tools import PathLike, NumpyNumeric
+from .types_carlee_tools import PathLike, ArrayLike, NumpyNumeric
 
 DEFAULT_SEED = 137504983571204
 NUMERICAL_DT_FORMAT = r"%Y%m%d%H%M%S"
@@ -563,7 +563,7 @@ def fps(simulation_minutes_per_second: float, simulation_time_per_frame: Any) ->
     return (simulation_minutes_per_second * 60) / simulation_seconds_per_frame
 
 
-def is_evenly_spaced(arr: np.ndarray, exact: bool = True) -> bool:
+def is_evenly_spaced(arr: ArrayLike, exact: bool = True) -> bool:
     """
     Check if array elements are evenly spaced.
 
@@ -575,7 +575,7 @@ def is_evenly_spaced(arr: np.ndarray, exact: bool = True) -> bool:
         True if elements are evenly spaced
     """
     if len(arr) > 1:
-        diffs = np.diff(arr)
+        diffs = np.diff(np.array(arr))
         are_evenly_spaced = (
             all(diffs == diffs[0]) if exact else np.allclose(diffs, diffs[0])
         )
@@ -584,7 +584,7 @@ def is_evenly_spaced(arr: np.ndarray, exact: bool = True) -> bool:
         return True
 
 
-def raise_if_not_evenly_spaced_(arr: np.ndarray, exact: bool = True) -> None:
+def raise_if_not_evenly_spaced_(arr: ArrayLike, exact: bool = True) -> None:
     """
     Raise ValueError if array elements are not evenly spaced.
 
@@ -599,8 +599,20 @@ def raise_if_not_evenly_spaced_(arr: np.ndarray, exact: bool = True) -> None:
         raise ValueError(f"Array is not evenly spaced")
 
 
+def warn_if_not_evenly_spaced(arr: ArrayLike, exact: bool = True) -> None:
+    """
+    Warn if array elements are not evenly spaced.
+
+    Args:
+        arr: Array to check
+        exact: If True, require exact spacing; if False, use approximate comparison
+    """
+    if not is_evenly_spaced(arr, exact=exact):
+        warn("Uneven array spacing; returning difference between first two elements")
+
+
 def spacing(
-    arr: np.ndarray, raise_if_not_evenly_spaced: bool = True, exact: bool = True
+    arr: ArrayLike, raise_if_not_evenly_spaced: bool = True, exact: bool = True
 ) -> NumpyNumeric:
     """
     Calculate spacing between array elements.
@@ -617,13 +629,9 @@ def spacing(
         ValueError: If array is not evenly spaced and raise_if_not_evenly_spaced is True
     """
     if raise_if_not_evenly_spaced:
-        raise_if_not_evenly_spaced_(arr, exact=exact)
+        raise_if_not_evenly_spaced_(arr=arr, exact=exact)
     else:
-        warn(
-            "`spacing` called with raise_if_not_evenly_spaced=False; be sure to "
-            "check this manually"
-        )
-
+        warn_if_not_evenly_spaced(arr=arr, exact=exact)
     return arr[1] - arr[0]
 
 
