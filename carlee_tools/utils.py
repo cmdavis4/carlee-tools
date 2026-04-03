@@ -705,6 +705,8 @@ def read_file(filepath, *args, **kwargs):
         - .pkl: pickle
     """
     path = Path(filepath)
+    if path.is_dir():
+        raise ValueError("Passed value of `filepath` is a directory")
     ext = path.suffix.lower()
 
     if ext == ".nc":
@@ -731,18 +733,19 @@ def write_file(obj, filepath):
     ext_write_method_mappings = {".nc": "to_netcdf", ".csv": "to_csv", ".pkl": "to_pkl"}
 
     def _pkl_write(obj, fpath):
-        with Path(fpath).open("wb"):
-            pkl.dump(obj)
+        with Path(fpath).open("wb") as f:
+            pkl.dump(obj, f)
 
     ext_write_fn_mappings = {".npy": np.save, ".pkl": _pkl_write}
 
     # First check methods
     wrote = False
-    if ext in ext_write_method_mappings:
+    if ext in ext_write_method_mappings and hasattr(
+        obj, ext_write_method_mappings[ext]
+    ):
         # It should be writeable using a method
-        if hasattr(obj, ext_write_method_mappings[ext]):
-            getattr(obj, ext_write_method_mappings[ext])(path)
-            wrote = True
+        getattr(obj, ext_write_method_mappings[ext])(path)
+        wrote = True
     elif ext in ext_write_fn_mappings:
         # Didn't have a method or not one writeable to with methods
         ext_write_fn_mappings[ext](obj, path)
@@ -752,7 +755,7 @@ def write_file(obj, filepath):
         raise ValueError(f"No write function or method known for extension {ext}")
 
 
-def read_or_cache_to(filepath, fail_ok=True):
+def read_or_cache_to(filepath, fail_ok=True, force_compute=False):
     """Decorator that caches function results to a pickle file.
 
     If the filepath exists, loads and returns the cached result.
@@ -766,12 +769,18 @@ def read_or_cache_to(filepath, fail_ok=True):
         @wraps(func)
         def wrapper(*args, **kwargs):
             path = Path(filepath)
-            if path.exists():
+            if path.exists() and not force_compute:
                 result = read_file(filepath)
                 print(f"Read result from {str(filepath)}")
                 return result
             else:
-                print(f"No file at {str(filepath)}, computing")
+                if force_compute and path.exists():
+                    print(
+                        "`force_compute=True` passed, overwriting existing file at "
+                        f"{str(filepath)}"
+                    )
+                else:
+                    print(f"No file at {str(filepath)}, computing")
                 result = func(*args, **kwargs)
                 # These computations are generally expensive so be sure to return
                 # the result even if the filepath to cache to is bad
@@ -779,11 +788,12 @@ def read_or_cache_to(filepath, fail_ok=True):
                     write_file(result, filepath)
                     print(f"Wrote computation result to {str(filepath)}")
                     return result
-                except:
+                except Exception as e:
                     if fail_ok:
                         warn(
                             f"Failed to write to {str(filepath)}; returning result"
-                            " without caching"
+                            " without caching\n"
+                            f"Caught exception was:\n{str(e)}"
                         )
                         return result
                     else:
@@ -806,3 +816,19 @@ def list_if_single(maybe_single):
             maybe_single,
         ]
     )
+
+
+def nth_value(listlike_view, n):
+    return list(listlike_view)[n]
+
+
+def first_value(d):
+    return nth_value(d.values(), 0)
+
+
+def first_key(d):
+    return nth_value(d.keys(), 0)
+
+
+def first_item(d):
+    return nth_value(d.items(), 0)
