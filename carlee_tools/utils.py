@@ -832,3 +832,7 @@ def first_key(d):
 
 def first_item(d):
     return nth_value(d.items(), 0)
+
+
+def td_to_seconds(td):
+    return td / np.timedelta64(1, "s")

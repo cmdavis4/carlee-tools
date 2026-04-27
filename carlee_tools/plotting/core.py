@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union, Tuple, Iterable, Callable
 import matplotlib.figure
 import matplotlib.axes
+import colorsys
 
 from ..types_carlee_tools import PathLike
 
@@ -467,7 +468,7 @@ def sequential_cmap(colors_list, name=None, N=512):
         for color in colors_list
     ]
     return colors.LinearSegmentedColormap.from_list(
-        name or f"cd_{str(colors)}", colors_list, N=N
+        name or f"cd_{str(colors_list)}", colors_list, N=N
     )
 
 
@@ -573,3 +574,24 @@ def gif_from_pngs(gif_path, pngs_fpaths, fps=24):
         for png_fpath in tqdm(pngs_fpaths):
             image = imageio.imread(str(png_fpath))
             writer.append_data(image)
+
+
+def adjust_luminosity(color, amount):
+    """
+    From https://stackoverflow.com/questions/37765197/darken-or-lighten-a-color-in-matplotlib:
+
+    Lightens the given color by multiplying (1-luminosity) by the given amount.
+    Input can be matplotlib color string, hex string, or RGB tuple.
+
+    Examples:
+    >> lighten_color('g', 0.3)
+    >> lighten_color('#F034A3', 0.6)
+    >> lighten_color((.3,.55,.1), 0.5)
+    """
+
+    try:
+        c = colors.cnames[color]
+    except:
+        c = color
+    c = colorsys.rgb_to_hls(*colors.to_rgb(c))
+    return colorsys.hls_to_rgb(c[0], 1 - amount * (1 - c[1]), c[2])
