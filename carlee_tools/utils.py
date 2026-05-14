@@ -177,12 +177,12 @@ def to_t_minutes(time_values, start_time):
     # Massage start time if needed
     try:
         start_time = start_time.to_numpy()
-    except:
+    except AttributeError:
         pass
-    if isinstance(time_values, (np.ndarray, xr.DataArray)):
-        return (time_values - start_time).dt.total_seconds() // 60
-    else:
-        return [int((x - start_time) / np.timedelta64(1, "m")) for x in time_values]
+    delta_minutes = (time_values - start_time) / np.timedelta64(1, "m")
+    if isinstance(delta_minutes, (np.ndarray, xr.DataArray)):
+        return delta_minutes.astype(int)
+    return int(delta_minutes)
 
 
 def dt_to_str(dt_like: DatetimeLike, date_format: str = NUMERICAL_DT_FORMAT) -> str:
