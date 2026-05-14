@@ -4,7 +4,7 @@ carlee_tools: Core utilities, types, and plotting for atmospheric science.
 Provides shared utilities and type definitions for atmospheric modeling packages.
 """
 
-__version__ = "1.0.0"
+__version__ = "1.2.0"
 
 # Import submodules
 from . import utils
@@ -38,4 +38,5 @@ __all__ = [
     "read_file",
     "write_file",
     "raise_if_exists",
+    "warn_if_not_evenly_spaced",
 ]
