@@ -356,6 +356,9 @@ def to_kv_pairs(
         s = str(s)
     d = {}
     for kv_pair in s.split("_"):
+        # If there's no key-value form, skip it
+        if "-" not in kv_pair:
+            continue
         splits = kv_pair.split("-")
         # Handle the case in which there's more than one - in the name, e.g.
         # if the value is a negative number

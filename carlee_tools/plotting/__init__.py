@@ -20,6 +20,8 @@ from .core import (
     gif_from_pngs,
 )
 
+from .animation import animate_grouped_xarray
+
 __all__ = [
     "format_t_str",
     "clean_legend",
