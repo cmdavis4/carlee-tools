@@ -409,7 +409,7 @@ def key_in_selector(
     key = dict(key)
     selector = dict(selector)
     for k, v in selector.items():
-        if isinstance(v, str):
+        if not isinstance(v, ArrayLike):
             v = [v]
         if key.get(k) not in v:
             return False
