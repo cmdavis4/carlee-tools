@@ -107,10 +107,9 @@ def clean_legend(
     # for collection in collections_to_iterate:
     for collection in filter_artists(ax.collections):
         # Get the color; assume we use the edge color if the face is transparent
-        has_facecolor = collection.get_facecolor() and collection.get_facecolor()[3]
-        color = (
-            collection.get_edgecolor() if has_facecolor else collection.get_facecolor()
-        )
+        facecolors = collection.get_facecolor()
+        has_facecolor = facecolors.size > 0 and facecolors[0][3] > 0
+        color = collection.get_edgecolor() if has_facecolor else facecolors
         try:
             collection_maxes[collection.get_label()] = (
                 {
@@ -142,6 +141,24 @@ def clean_legend(
             else {"color": this_color}
         )
     all_maxes.update(patches_dict)
+    # Handle errorbars: each ax.errorbar() call produces an ErrorbarContainer in
+    # ax.containers whose label is what appears in the legend, but whose child
+    # Line2D/LineCollection artists get auto "_childN" labels that are excluded from
+    # the legend — so they never land in the line/collection loops above.
+    # The main data line (container.lines[0]) carries the display color.
+    container_dict = {}
+    for container in filter_artists(ax.containers):
+        if not isinstance(container, mpl.container.ErrorbarContainer):
+            continue
+        label = container.get_label()
+        data_line = container.lines[0]  # the central marker/line
+        color = data_line.get_color()
+        if sort:
+            ydata = data_line.get_ydata()
+            container_dict[label] = {"max": max(ydata), "color": color, "alpha": data_line.get_alpha()}
+        else:
+            container_dict[label] = {"color": color, "alpha": data_line.get_alpha()}
+    all_maxes.update(container_dict)
     handles, labels = ax.get_legend_handles_labels()
     if sort:
         # Get the right order of line names
@@ -155,6 +172,10 @@ def clean_legend(
         # Get the indexes that the order we want corresponds to in the existing labels/handles
     else:
         label_order_desc = labels
+    # Filter to only labels that were successfully tracked in all_maxes;
+    # some artist types (e.g. fill_between bands) produce legend entries but
+    # aren't handled above, so they won't have a color entry.
+    label_order_desc = [k for k in label_order_desc if k in all_maxes]
     order = [labels.index(x) for x in label_order_desc]
     # Need to order the *handles* correctly so matplotlib can connect them to the actual lines,
     # even though we hide them
