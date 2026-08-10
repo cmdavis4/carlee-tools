@@ -1,14 +1,17 @@
-"""Utility functions for datetime handling, file operations, and data processing."""
+"""Miscellaneous utilities: TwoWayDict, sampling, module reloading, and
+collection helpers.
 
-import re
-import numpy as np
-import sys
+Datetime helpers live in ``dt``; file I/O in ``io``; key-value/filename helpers
+in ``kv``; grid-spacing helpers in ``spacing``.
+"""
+
 import importlib
-from typing import Any, Dict, Optional, Union, Callable, Tuple
+import sys
+from typing import Any, Dict
+
+import numpy as np
 
 from carlee_tools.types_carlee_tools import is_arraylike
-
-from .types_carlee_tools import PathLike, ArrayLike, NumpyNumeric, DatetimeLike
 
 DEFAULT_SEED = 137504983571204
 

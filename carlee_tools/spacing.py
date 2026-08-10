@@ -2,6 +2,8 @@ from warnings import warn
 
 import numpy as np
 
+from carlee_tools.types_carlee_tools import ArrayLike, NumpyNumeric
+
 
 def is_evenly_spaced(arr: ArrayLike, exact: bool = True) -> bool:
     """
@@ -36,7 +38,7 @@ def raise_if_not_evenly_spaced_(arr: ArrayLike, exact: bool = True) -> None:
         ValueError: If array is not evenly spaced
     """
     if not is_evenly_spaced(arr, exact=exact):
-        raise ValueError(f"Array is not evenly spaced")
+        raise ValueError("Array is not evenly spaced")
 
 
 def warn_if_not_evenly_spaced(arr: ArrayLike, exact: bool = True) -> None:

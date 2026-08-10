@@ -1,6 +1,6 @@
 import numpy as np
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union
 
 from carlee_tools.spacing import bin_edges
 

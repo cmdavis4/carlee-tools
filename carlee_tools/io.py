@@ -7,6 +7,8 @@ from warnings import warn
 
 import numpy as np
 
+from carlee_tools.types_carlee_tools import PathLike
+
 
 class RaiseIfExistsException(Exception):
     # Type of error specifically for trying to write if something exists

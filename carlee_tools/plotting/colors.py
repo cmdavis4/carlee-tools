@@ -1,5 +1,5 @@
 import colorsys
-from typing import Any
+from typing import Any, Optional
 
 import matplotlib as mpl
 import matplotlib.axes

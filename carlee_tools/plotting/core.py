@@ -1,31 +1,24 @@
-"""Plotting utilities for atmospheric data visualization and analysis.
+"""Core plotting utilities: legends, subplot grids, axis formatting, and saving.
 
-This module provides functions for creating faceted plots, animations, legends,
-and specialized atmospheric plots like soundings and hodographs.
+Colormap helpers live in ``colors``; animation helpers live in ``animation``.
 """
 
-import xarray as xr
-import matplotlib.pyplot as plt
-import matplotlib.figure as mplfig
-import numpy as np
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-from matplotlib.animation import FuncAnimation
-from tqdm.notebook import tqdm
-import matplotlib.animation as mplanim
-from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-import metpy.calc as mpc
-from metpy.units import units
-from metpy.plots import SkewT, Hodograph
-import matplotlib as mpl
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union, Tuple, Iterable, Callable
-import matplotlib.figure
+from typing import Any, List, Optional, Union
+
+import matplotlib as mpl
 import matplotlib.axes
-
-from carlee_tools.plotting.colors import match_color
-
+import matplotlib.figure
+import matplotlib.pyplot as plt
+import numpy as np
+from tqdm.notebook import tqdm
 
 from ..types_carlee_tools import PathLike
+
+# NOTE: `match_color` is imported lazily inside `clean_legend` (not at module
+# scope) to avoid a circular import: `colors` imports `last_artist` from this
+# module, and `plotting/__init__` imports `colors` first, so a top-level
+# `from ...colors import match_color` here would hit a half-initialized module.
 
 
 def last_artist(ax: Optional[matplotlib.axes.Axes] = None) -> Any:
@@ -86,6 +79,10 @@ def clean_legend(
     Returns:
         The modified axes object
     """
+    # Imported here rather than at module scope to break the colors<->core
+    # import cycle (see note by the imports at the top of this file).
+    from carlee_tools.plotting.colors import match_color
+
     if include_artists is None:
         include_artists = []
 

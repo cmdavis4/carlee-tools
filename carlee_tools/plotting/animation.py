@@ -46,62 +46,6 @@ def make_colorbar(da, ax=None, cax=None, vcenter=None, norm=None, cmap="viridis"
     return plt.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax, cax=cax)
 
 
-def animate_grouped_xarray(fig, axs, animation_fn, grouped_ds, single_frame_ix=None):
-    """
-    Create a FuncAnimation by iterating over a grouped xarray dataset.
-
-    Parameters
-    ----------
-    fig : matplotlib.figure.Figure
-        The figure to animate
-    axs : array of axes
-        The axes to draw on
-    animation_fn : callable
-        Function to draw a single frame. Should accept (fig, axs, group_name, group_data).
-        Can create colorbars - they will be automatically cleaned up between frames.
-    grouped_ds : xarray.core.groupby.DatasetGroupBy
-        Grouped xarray dataset to iterate over
-    single_frame_ix : int, optional
-        If provided, only plot this frame index (useful for debugging).
-        If None, create a full animation.
-
-    Returns
-    -------
-    matplotlib.animation.FuncAnimation or None
-        The animation object, or None if single_frame_ix was specified
-    """
-    # Convert grouped dataset to list of (name, data) tuples for indexing
-    groups = list(grouped_ds)
-
-    def update(frame_num):
-        """Update function called for each frame."""
-        # Clear all original axes
-        for ax in axs.flatten():
-            ax.clear()
-
-        # Get the current group data
-        group_name, group_data = groups[frame_num]
-
-        # Call the user's animation function
-        animation_fn(fig, axs, group_name, group_data.squeeze())
-
-        # Return empty list (required by FuncAnimation)
-        return []
-
-    # Create and return the animation
-    if single_frame_ix is not None:
-        # Just plot the specified frame
-        update(single_frame_ix)
-        # Return None so we can easily have conditional logic for showing
-        # the animation if it is actually an animation
-        return None
-    else:
-        anim = FuncAnimation(
-            fig, update, frames=tqdm(range(len(groups))), blit=False, repeat=True
-        )
-        return anim
-
-
 def _ax_list(axs):
     return list(np.ravel(np.asarray(axs)))
 
