@@ -13,50 +13,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tqdm.notebook import tqdm
 
+from .artists import match_color
 from ..types_carlee_tools import PathLike
-
-# NOTE: `match_color` is imported lazily inside `clean_legend` (not at module
-# scope) to avoid a circular import: `colors` imports `last_artist` from this
-# module, and `plotting/__init__` imports `colors` first, so a top-level
-# `from ...colors import match_color` here would hit a half-initialized module.
-
-
-def last_artist(ax: Optional[matplotlib.axes.Axes] = None) -> Any:
-    """
-    Return the data artist most recently added to an axes.
-
-    Saves you from having to capture and unpack whatever a plotting call
-    returned (a single Line2D, a list of them, a container, a collection, ...)
-    just to refer back to it. Pairs with ``match_color`` via ``last_color``.
-
-    Matplotlib keeps every data artist (lines, collections, patches, images) in
-    a single insertion-ordered list on the axes, ``ax._children``, from which
-    the public ``ax.lines`` / ``ax.collections`` / ``ax.patches`` views are
-    filtered. The last element is therefore the most recently added artist,
-    regardless of type. Container-producing calls (``bar``, ``errorbar``) put
-    their individual primitives in this list too, so the last child is the last
-    bar / the errorbar's cap collection — whose color still matches the call.
-
-    Args:
-        ax: Axes to read from. Defaults to the current axes (``plt.gca()``),
-            mirroring the rest of pyplot's implicit-axes convention.
-
-    Returns:
-        The most recently added data artist.
-
-    Raises:
-        ValueError: If the axes has no data artists yet.
-    """
-    # Default to the current axes so `last_artist()` reads the axes just plotted
-    # into, the same way plt.plot()/plt.gca() do.
-    if ax is None:
-        ax = plt.gca()
-    # `_children` is private but has been the unified, insertion-ordered artist
-    # list since matplotlib 3.5; the public per-type lists are just views on it.
-    children = ax._children
-    if not children:
-        raise ValueError("Axes has no data artists to take the last one from.")
-    return children[-1]
 
 
 def clean_legend(
@@ -79,10 +37,6 @@ def clean_legend(
     Returns:
         The modified axes object
     """
-    # Imported here rather than at module scope to break the colors<->core
-    # import cycle (see note by the imports at the top of this file).
-    from carlee_tools.plotting.colors import match_color
-
     if include_artists is None:
         include_artists = []
 

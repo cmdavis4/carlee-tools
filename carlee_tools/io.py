@@ -7,7 +7,7 @@ from warnings import warn
 
 import numpy as np
 
-from carlee_tools.types_carlee_tools import PathLike
+from .types_carlee_tools import PathLike
 
 
 class RaiseIfExistsException(Exception):
@@ -67,8 +67,6 @@ def append_to_stem(fpath: PathLike, to_append: str) -> Path:
 def delete_directory_contents(
     dir_path: PathLike, delete_directory: bool = False
 ):
-    import shutil
-
     dir_path = Path(dir_path)
     assert dir_path.is_dir()
     if dir_path.exists():
@@ -114,8 +112,6 @@ def read_file(filepath, *args, **kwargs):
 
         return pd.read_parquet(path, *args, **kwargs)
     elif ext == ".json":
-        import json
-
         with path.open("r") as f:
             return json.load(f, *args, **kwargs)
     elif ext == ".pkl":
@@ -133,7 +129,6 @@ def write_file(obj, filepath):
         ".nc": "to_netcdf",
         ".csv": "to_csv",
         ".parquet": "to_parquet",
-        ".pkl": "to_pkl",
     }
 
     def _pkl_write(obj, fpath):
@@ -141,8 +136,6 @@ def write_file(obj, filepath):
             pkl.dump(obj, f)
 
     def _json_write(obj, fpath):
-        import json
-
         with Path(fpath).open("w") as f:
             json.dump(obj, f)
 

@@ -11,7 +11,7 @@ from typing import Any, Dict
 
 import numpy as np
 
-from carlee_tools.types_carlee_tools import is_arraylike
+from .types_carlee_tools import is_arraylike
 
 DEFAULT_SEED = 137504983571204
 

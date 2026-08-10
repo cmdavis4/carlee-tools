@@ -1,8 +1,8 @@
 from pathlib import Path
 from typing import Any, Dict, List, Union
 
-from carlee_tools.dt import str_to_dt
-from carlee_tools.types_carlee_tools import PathLike, is_arraylike
+from .dt import str_to_dt
+from .types_carlee_tools import PathLike, is_arraylike
 
 
 def to_kv_pairs(

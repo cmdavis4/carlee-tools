@@ -2,7 +2,7 @@ from warnings import warn
 
 import numpy as np
 
-from carlee_tools.types_carlee_tools import ArrayLike, NumpyNumeric
+from .types_carlee_tools import ArrayLike, NumpyNumeric
 
 
 def is_evenly_spaced(arr: ArrayLike, exact: bool = True) -> bool:
@@ -26,7 +26,7 @@ def is_evenly_spaced(arr: ArrayLike, exact: bool = True) -> bool:
         return True
 
 
-def raise_if_not_evenly_spaced_(arr: ArrayLike, exact: bool = True) -> None:
+def raise_if_uneven(arr: ArrayLike, exact: bool = True) -> None:
     """
     Raise ValueError if array elements are not evenly spaced.
 
@@ -74,7 +74,7 @@ def spacing(
         ValueError: If array is not evenly spaced and raise_if_not_evenly_spaced is True
     """
     if raise_if_not_evenly_spaced:
-        raise_if_not_evenly_spaced_(arr=arr, exact=exact)
+        raise_if_uneven(arr=arr, exact=exact)
     else:
         warn_if_not_evenly_spaced(arr=arr, exact=exact)
     return arr[1] - arr[0]

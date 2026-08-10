@@ -4,7 +4,7 @@ from typing import Optional
 import numpy as np
 import xarray as xr
 
-from carlee_tools.types_carlee_tools import DatetimeLike
+from .types_carlee_tools import DatetimeLike
 
 
 def to_t_minutes(time_values, start_time):

@@ -1,8 +1,14 @@
-import numpy as np
+"""xarray helpers: binning parcel/point data onto a grid and extracting points.
+
+Named ``xr`` (not ``xarray``) so it never shadows the real ``xarray`` package
+on ``sys.path``.
+"""
 
 from typing import Any, Dict, List, Union
 
-from carlee_tools.spacing import bin_edges
+import numpy as np
+
+from .spacing import bin_edges
 
 
 def bin_to_grid(

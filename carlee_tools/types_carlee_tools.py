@@ -4,40 +4,38 @@ Type definitions for the carlee_tools package.
 This module provides type aliases and custom types used throughout the package.
 """
 
-from pathlib import Path
-import sys
-from typing import Union
 import datetime as dt
-import pandas as pd
+import sys
+from pathlib import Path
+from typing import Union
+
 import numpy as np
 
 # pyright: reportRedeclaration=false
 
-# Handle TypeAlias for Python < 3.10 compatibility
+# TypeAlias moved into typing in 3.10; on 3.8-3.9 it comes from the
+# typing-extensions dependency (declared in pyproject for python_version<'3.10').
 if sys.version_info >= (3, 10):
     from typing import TypeAlias
 else:
-    try:
-        from typing_extensions import TypeAlias
-    except ImportError:
-        # Fallback for when typing_extensions is not available
-        TypeAlias = None
+    from typing_extensions import TypeAlias
 
 # Path-like objects (strings or Path instances)
-if TypeAlias is not None:
-    PathLike: TypeAlias = Union[str, Path]
-    DatetimeLike: TypeAlias = Union[dt.datetime, pd.Timestamp, np.datetime64]
-else:
-    PathLike = Union[str, Path]
+PathLike: TypeAlias = Union[str, Path]
 
-# Optional type if numpy is present
+# Numpy scalar / array-like aliases. numpy is a hard dependency, so these are
+# always defined.
+NumpyNumeric: TypeAlias = Union[np.integer, np.floating]
+ArrayLike: TypeAlias = Union[list, tuple, np.ndarray]
+
+# Datetime-like objects. pandas is an optional dependency, so only fold
+# pd.Timestamp into the alias when pandas is actually installed.
 try:
-    import numpy as np
+    import pandas as pd
 
-    NumpyNumeric: TypeAlias = Union[np.integer, np.floating]
-    ArrayLike: TypeAlias = Union[list, tuple, np.ndarray]
+    DatetimeLike: TypeAlias = Union[dt.datetime, pd.Timestamp, np.datetime64]
 except ImportError:
-    pass
+    DatetimeLike: TypeAlias = Union[dt.datetime, np.datetime64]
 
 
 def is_arraylike(maybe_arr):
