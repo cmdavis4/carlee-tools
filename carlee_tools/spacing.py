@@ -76,3 +76,20 @@ def spacing(
     else:
         warn_if_not_evenly_spaced(arr=arr, exact=exact)
     return arr[1] - arr[0]
+
+
+def bin_edges(ds, dims=["x", "y", "z"]):
+    return {
+        dim: np.concatenate([
+            # Leading edge: use 0 as the lower boundary of the first bin
+            np.array([0]),
+            # Interior edges: midpoint between each pair of adjacent cell centers
+            (ds[dim] - (ds[dim].diff(dim) / 2)).values,
+            # Trailing edge: extrapolate one half-spacing past the last center
+            np.array([
+                ds[dim].values[-1]
+                + (ds[dim].values[-1] - ds[dim].values[-2]) / 2
+            ]),
+        ])
+        for dim in dims
+    }
