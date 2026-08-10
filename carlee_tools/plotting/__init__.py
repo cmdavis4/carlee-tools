@@ -2,6 +2,9 @@
 
 from .core import (
     format_t_str,
+    match_color,
+    last_artist,
+    last_color,
     clean_legend,
     contour_legend,
     get_nth_color,
@@ -24,6 +27,9 @@ from .animation import animate_grouped_xarray
 
 __all__ = [
     "format_t_str",
+    "match_color",
+    "last_artist",
+    "last_color",
     "clean_legend",
     "contour_legend",
     "get_nth_color",

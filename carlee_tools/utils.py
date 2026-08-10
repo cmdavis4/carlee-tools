@@ -127,7 +127,8 @@ class TwoWayDict:
         html.append("  <thead>")
         html.append("    <tr>")
         html.append(
-            '      <th style="padding: 4px 8px; background-color: #f0f0f0;"></th>'
+            '      <th style="padding: 4px 8px; background-color:'
+            ' #f0f0f0;"></th>'
         )  # Empty top-left cell
         for inner_key in inner_keys:
             html.append(
@@ -152,7 +153,9 @@ class TwoWayDict:
                     value = inner_dict[inner_key]
                     # Check if value is iterable (but not string) and has length
                     try:
-                        if hasattr(value, "__len__") and not isinstance(value, str):
+                        if hasattr(value, "__len__") and not isinstance(
+                            value, str
+                        ):
                             cell_value = str(len(value))
                         else:
                             cell_value = "✓"
@@ -185,7 +188,9 @@ def to_t_minutes(time_values, start_time):
     return int(delta_minutes)
 
 
-def dt_to_str(dt_like: DatetimeLike, date_format: str = NUMERICAL_DT_FORMAT) -> str:
+def dt_to_str(
+    dt_like: DatetimeLike, date_format: str = NUMERICAL_DT_FORMAT
+) -> str:
     """
     Convert datetime-like objects to formatted strings.
 
@@ -228,7 +233,9 @@ def dt_to_str(dt_like: DatetimeLike, date_format: str = NUMERICAL_DT_FORMAT) -> 
                 py_datetime = dt_as_seconds.astype(dt.datetime)
                 return py_datetime.strftime(date_format)
             except (ValueError, TypeError, OverflowError) as e:
-                raise ValueError(f"Failed to convert numpy datetime64 to string: {e}")
+                raise ValueError(
+                    f"Failed to convert numpy datetime64 to string: {e}"
+                )
 
     # Handle time.struct_time
     if hasattr(dt_like, "tm_year"):
@@ -244,7 +251,9 @@ def dt_to_str(dt_like: DatetimeLike, date_format: str = NUMERICAL_DT_FORMAT) -> 
             py_datetime = dt.datetime.fromtimestamp(dt_like)
             return py_datetime.strftime(date_format)
         except (ValueError, TypeError, OSError) as e:
-            raise ValueError(f"Failed to convert timestamp {dt_like} to string: {e}")
+            raise ValueError(
+                f"Failed to convert timestamp {dt_like} to string: {e}"
+            )
 
     # Try pandas Timestamp if pandas is available
     try:
@@ -263,7 +272,8 @@ def dt_to_str(dt_like: DatetimeLike, date_format: str = NUMERICAL_DT_FORMAT) -> 
         pass
 
     raise ValueError(
-        f"Cannot convert object of type {type(dt_like)} to datetime string: {dt_like}"
+        f"Cannot convert object of type {type(dt_like)} to datetime string:"
+        f" {dt_like}"
     )
 
 
@@ -425,7 +435,9 @@ def key_in_selector(
 
 
 def filter_paths_by_selector(
-    paths: List[PathLike], selector: Dict[str, List[Any]], parse_floats: bool = True
+    paths: List[PathLike],
+    selector: Dict[str, List[Any]],
+    parse_floats: bool = True,
 ) -> List[PathLike]:
     """
     Filter a list of paths based on key-value selector criteria.
@@ -502,7 +514,9 @@ def raise_if_exists(fpath: PathLike) -> None:
         OSError: If the file exists
     """
     if Path(fpath).exists():
-        raise OSError(f"Output path {str(fpath)} exists and exist_ok=False was passed")
+        raise OSError(
+            f"Output path {str(fpath)} exists and exist_ok=False was passed"
+        )
 
 
 def maybe_random_choice(
@@ -524,7 +538,9 @@ def maybe_random_choice(
     if size >= len(arr):
         return arr
     else:
-        return np.random.default_rng(seed=seed).choice(arr, size=size, replace=False)
+        return np.random.default_rng(seed=seed).choice(
+            arr, size=size, replace=False
+        )
 
 
 def prepend_to_stem(to_prepend: str, fpath: PathLike) -> Path:
@@ -559,7 +575,9 @@ def append_to_stem(fpath: PathLike, to_append: str) -> Path:
     return fpath.with_stem(fpath.stem + to_append)
 
 
-def fps(simulation_minutes_per_second: float, simulation_time_per_frame: Any) -> float:
+def fps(
+    simulation_minutes_per_second: float, simulation_time_per_frame: Any
+) -> float:
     """
     Calculate frames per second from simulation parameters.
 
@@ -619,7 +637,10 @@ def warn_if_not_evenly_spaced(arr: ArrayLike, exact: bool = True) -> None:
         exact: If True, require exact spacing; if False, use approximate comparison
     """
     if not is_evenly_spaced(arr, exact=exact):
-        warn("Uneven array spacing; returning difference between first two elements")
+        warn(
+            "Uneven array spacing; returning difference between first two"
+            " elements"
+        )
 
 
 def spacing(
@@ -689,7 +710,9 @@ def recursive_reload(module: Any, silent=False) -> None:
         print(f"Reloaded {module_name}")
 
 
-def empty_directory(dir_path: PathLike, delete_directory: bool = False):
+def delete_directory_contents(
+    dir_path: PathLike, delete_directory: bool = False
+):
     import shutil
 
     dir_path = Path(dir_path)
@@ -713,6 +736,8 @@ def read_file(filepath, *args, **kwargs):
         - .nc: xarray.open_dataset
         - .npy: numpy.load
         - .csv: pandas.read_csv
+        - .parquet: pandas.read_parquet
+        - .json: json.load
         - .pkl: pickle
     """
     path = Path(filepath)
@@ -730,6 +755,15 @@ def read_file(filepath, *args, **kwargs):
         import pandas as pd
 
         return pd.read_csv(path, *args, **kwargs)
+    elif ext == ".parquet":
+        import pandas as pd
+
+        return pd.read_parquet(path, *args, **kwargs)
+    elif ext == ".json":
+        import json
+
+        with path.open("r") as f:
+            return json.load(f, *args, **kwargs)
     elif ext == ".pkl":
         with path.open("rb") as f:
             return pkl.load(f, *args, **kwargs)
@@ -741,13 +775,32 @@ def write_file(obj, filepath):
     path = Path(filepath)
     ext = path.suffix.lower()
 
-    ext_write_method_mappings = {".nc": "to_netcdf", ".csv": "to_csv", ".pkl": "to_pkl"}
+    ext_write_method_mappings = {
+        ".nc": "to_netcdf",
+        ".csv": "to_csv",
+        ".parquet": "to_parquet",
+        ".pkl": "to_pkl",
+    }
 
     def _pkl_write(obj, fpath):
         with Path(fpath).open("wb") as f:
             pkl.dump(obj, f)
 
-    ext_write_fn_mappings = {".npy": np.save, ".pkl": _pkl_write}
+    def _json_write(obj, fpath):
+        import json
+
+        with Path(fpath).open("w") as f:
+            json.dump(obj, f)
+
+    def _npy_write(obj, fpath):
+        # Only need to do this one because np.save does (fpath, obj) order
+        return np.save(fpath, obj)
+
+    ext_write_fn_mappings = {
+        ".npy": _npy_write,
+        ".pkl": _pkl_write,
+        ".json": _json_write,
+    }
 
     # First check methods
     wrote = False
@@ -763,10 +816,14 @@ def write_file(obj, filepath):
         wrote = True
 
     if not wrote:
-        raise ValueError(f"No write function or method known for extension {ext}")
+        raise ValueError(
+            f"No write function or method known for extension {ext}"
+        )
 
 
-def read_or_cache_to(filepath, fail_ok=True, force_compute=False):
+def read_or_cache_to(
+    filepath, fail_ok=True, not_exist_ok=False, force_compute=False
+):
     """Decorator that caches function results to a pickle file.
 
     If the filepath exists, loads and returns the cached result.
@@ -775,6 +832,12 @@ def read_or_cache_to(filepath, fail_ok=True, force_compute=False):
     Args:
         filepath: Path to the pickle file for caching
     """
+
+    filepath = Path(filepath)
+    if not filepath.parent.exists() and not not_exist_ok:
+        raise FileNotFoundError(
+            f"Parent directory of {str(filepath)} does not exist"
+        )
 
     def decorator(func):
         @wraps(func)
@@ -787,8 +850,8 @@ def read_or_cache_to(filepath, fail_ok=True, force_compute=False):
             else:
                 if force_compute and path.exists():
                     print(
-                        "`force_compute=True` passed, overwriting existing file at "
-                        f"{str(filepath)}"
+                        "`force_compute=True` passed, overwriting existing"
+                        f" file at {str(filepath)}"
                     )
                 else:
                     print(f"No file at {str(filepath)}, computing")
@@ -802,9 +865,9 @@ def read_or_cache_to(filepath, fail_ok=True, force_compute=False):
                 except Exception as e:
                     if fail_ok:
                         warn(
-                            f"Failed to write to {str(filepath)}; returning result"
-                            " without caching\n"
-                            f"Caught exception was:\n{str(e)}"
+                            f"Failed to write to {str(filepath)}; returning"
+                            " result without caching\nCaught exception"
+                            f" was:\n{str(e)}"
                         )
                         return result
                     else:
@@ -850,16 +913,24 @@ def td_to_seconds(td):
 
 
 def nice_keys(
-    keys, *to_kv_pairs_args, scientific_notation_threshold=1e4, **to_kv_pairs_kwargs
+    keys,
+    *to_kv_pairs_args,
+    scientific_notation_threshold=1e4,
+    **to_kv_pairs_kwargs,
 ):
     # Parse each key string into a dict of key-value pairs
-    parsed = [to_kv_pairs(key, *to_kv_pairs_args, **to_kv_pairs_kwargs) for key in keys]
+    parsed = [
+        to_kv_pairs(key, *to_kv_pairs_args, **to_kv_pairs_kwargs)
+        for key in keys
+    ]
 
     # Collect all parameter keys that appear across any entry
     all_param_keys = set().union(*(d.keys() for d in parsed))
 
     # Drop keys whose values are identical across all entries — they don't differentiate
-    drop_keys = {k for k in all_param_keys if len({d.get(k) for d in parsed}) == 1}
+    drop_keys = {
+        k for k in all_param_keys if len({d.get(k) for d in parsed}) == 1
+    }
     differentiating_keys = all_param_keys - drop_keys
 
     if not scientific_notation_threshold:
@@ -888,7 +959,8 @@ def nice_keys(
 
         # Only apply scientific notation if at least one value is "large"
         if not any(
-            abs(v) >= scientific_notation_threshold for v in float_values_for_key
+            abs(v) >= scientific_notation_threshold
+            for v in float_values_for_key
         ):
             continue
 
@@ -920,3 +992,50 @@ def nice_keys(
                 display_kv[param_key] = raw_value
         result[original_key] = to_kv_str(display_kv)
     return result
+
+
+def bin_edges(ds, dims=["x", "y", "z"]):
+    return {
+        dim: np.concatenate([
+            # Leading edge: use 0 as the lower boundary of the first bin
+            np.array([0]),
+            # Interior edges: midpoint between each pair of adjacent cell centers
+            (ds[dim] - (ds[dim].diff(dim) / 2)).values,
+            # Trailing edge: extrapolate one half-spacing past the last center
+            np.array([
+                ds[dim].values[-1]
+                + (ds[dim].values[-1] - ds[dim].values[-2]) / 2
+            ]),
+        ])
+        for dim in dims
+    }
+
+
+def bin_to_grid(
+    parcel_ds,
+    grid_ds,
+    dims=["x", "y", "z"],
+    parcel_id_var="parcel_ix",
+    weights=None,
+):
+    from xhistogram.xarray import histogram
+
+    grid_ds = grid_ds.copy()
+    # Build bin edges: prepend a leading 0, compute interior midpoints between
+    # adjacent grid cell centers, then extrapolate one final edge past the last center.
+    # np.append only accepts two arrays; use np.concatenate for three-way joins.
+    grid_bin_edges = bin_edges(grid_ds, dims=dims)
+    # block_size=None forces xhistogram to process each dask block as a single
+    # chunk instead of running its auto-block heuristic. For a 3-D grid the joint
+    # bin count N = (nx+2)(ny+2)(nz+2) can exceed xhistogram's hardcoded
+    # _MAX_CHUNK_SIZE (10_000_000); the heuristic then computes
+    # block_size = _MAX_CHUNK_SIZE // N = 0 and divides by it (ZeroDivisionError).
+    # The data is already chunked by time, so one chunk per block is fine.
+    binned = histogram(
+        *(parcel_ds[dim] for dim in dims),
+        bins=list(grid_bin_edges.values()),
+        dim=[parcel_id_var],
+        weights=weights,
+        block_size=None,
+    ).rename({f"{dim}_bin": dim for dim in dims})
+    return binned

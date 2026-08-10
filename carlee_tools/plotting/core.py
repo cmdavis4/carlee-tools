@@ -50,6 +50,145 @@ def format_t_str(t: Any, strftime: str = "%Y-%m-%d %H:%M:%S") -> Any:
             return t
 
 
+def match_color(artist: Any) -> Any:
+    """
+    Return the display color of a matplotlib artist, generically across types.
+
+    The point is to recover "the" color a viewer associates with an artist so a
+    second, corresponding artist can be drawn with the same color, e.g.
+    ``ax.axhline(y, color=match_color(line))``. Different artist types expose
+    their color through different (and sometimes plural) accessors, so this
+    function centralizes the per-type rules. ``clean_legend`` uses it to pick
+    each legend entry's text color.
+
+    Handled artist types:
+      - Line2D (line plots): the line color.
+      - Collection (scatter points, stackplot/fill_between bands, LineCollection):
+        the face color when the face is opaque, otherwise the edge color (e.g.
+        unfilled markers), otherwise the face color even if transparent.
+      - Patch (bars, histogram rectangles, polygons): the face color, falling
+        back to the edge color when the face is transparent (e.g. step
+        histograms drawn with ``histtype="step"``).
+      - ErrorbarContainer: the color of the central data line/marker
+        (``container.lines[0]``), since the container's child artists carry
+        auto-generated labels rather than the display color.
+
+    Args:
+        artist: The matplotlib artist (or container) to read a color from.
+
+    Returns:
+        The artist's color. For lines this is whatever ``get_color`` reports
+        (a color spec such as ``"C0"`` or an RGBA tuple); for collections and
+        patches it is an RGBA tuple. Returns ``None`` when no color can be
+        determined (e.g. a fully invisible collection with neither a face nor
+        an edge color).
+
+    Raises:
+        TypeError: If the artist type is not recognized.
+    """
+    # Line2D: the color is unambiguous, just read it off directly.
+    if isinstance(artist, mpl.lines.Line2D):
+        return artist.get_color()
+
+    # ErrorbarContainer: the label lives on the container, but the display
+    # color lives on the central data line (its first child line).
+    if isinstance(artist, mpl.container.ErrorbarContainer):
+        return match_color(artist.lines[0])
+
+    # Collection: covers scatter markers, stackplot/fill_between bands, and
+    # LineCollections. Face and edge colors are arrays (one row per element),
+    # so reduce to a single RGBA tuple.
+    if isinstance(artist, mpl.collections.Collection):
+        facecolors = artist.get_facecolor()
+        edgecolors = artist.get_edgecolor()
+        # Prefer the face color when the face is actually opaque (filled markers,
+        # filled bands).
+        has_opaque_face = facecolors.size > 0 and facecolors[0][3] > 0
+        if has_opaque_face:
+            return facecolors[0]
+        # Fall back to the edge color when the face is transparent (unfilled
+        # markers drawn with only an outline).
+        if edgecolors.size > 0:
+            return edgecolors[0]
+        # Last resort: return the (transparent) face color if there is one, else
+        # signal that the artist has no determinable color.
+        if facecolors.size > 0:
+            return facecolors[0]
+        return None
+
+    # Patch: bars, histogram rectangles, and polygons.
+    if isinstance(artist, mpl.patches.Patch):
+        facecolor = artist.get_facecolor()
+        # A transparent face (alpha == 0) means the fill is invisible, e.g. a
+        # step histogram, so the outline carries the color instead.
+        if facecolor[3] == 0:
+            return artist.get_edgecolor()
+        return facecolor
+
+    raise TypeError(
+        "match_color does not know how to get a color from a"
+        f" {type(artist).__name__}"
+    )
+
+
+def last_artist(ax: Optional[matplotlib.axes.Axes] = None) -> Any:
+    """
+    Return the data artist most recently added to an axes.
+
+    Saves you from having to capture and unpack whatever a plotting call
+    returned (a single Line2D, a list of them, a container, a collection, ...)
+    just to refer back to it. Pairs with ``match_color`` via ``last_color``.
+
+    Matplotlib keeps every data artist (lines, collections, patches, images) in
+    a single insertion-ordered list on the axes, ``ax._children``, from which
+    the public ``ax.lines`` / ``ax.collections`` / ``ax.patches`` views are
+    filtered. The last element is therefore the most recently added artist,
+    regardless of type. Container-producing calls (``bar``, ``errorbar``) put
+    their individual primitives in this list too, so the last child is the last
+    bar / the errorbar's cap collection — whose color still matches the call.
+
+    Args:
+        ax: Axes to read from. Defaults to the current axes (``plt.gca()``),
+            mirroring the rest of pyplot's implicit-axes convention.
+
+    Returns:
+        The most recently added data artist.
+
+    Raises:
+        ValueError: If the axes has no data artists yet.
+    """
+    # Default to the current axes so `last_artist()` reads the axes just plotted
+    # into, the same way plt.plot()/plt.gca() do.
+    if ax is None:
+        ax = plt.gca()
+    # `_children` is private but has been the unified, insertion-ordered artist
+    # list since matplotlib 3.5; the public per-type lists are just views on it.
+    children = ax._children
+    if not children:
+        raise ValueError("Axes has no data artists to take the last one from.")
+    return children[-1]
+
+
+def last_color(ax: Optional[matplotlib.axes.Axes] = None) -> Any:
+    """
+    Return the color of the most recently added artist on an axes.
+
+    Convenience wrapper around ``match_color(last_artist(ax))`` for the common
+    case of matching a new artist's color to the one just drawn, e.g.::
+
+        ax.plot(x, y, label="data")
+        ax.axhline(y.mean(), color=last_color(), linestyle="--")
+
+    Args:
+        ax: Axes to read from. Defaults to the current axes (``plt.gca()``).
+
+    Returns:
+        The color of the last-added artist (see ``match_color`` for the exact
+        per-type rules and return format).
+    """
+    return match_color(last_artist(ax))
+
+
 def clean_legend(
     ax: matplotlib.axes.Axes,
     include_artists: Optional[List[Any]] = None,
@@ -86,11 +225,11 @@ def clean_legend(
         line.get_label(): (
             {
                 "max": max(line.get_ydata()),
-                "color": line.get_color(),
+                "color": match_color(line),
                 "alpha": line.get_alpha(),
             }
             if sort
-            else {"color": line.get_color(), "alpha": line.get_alpha()}
+            else {"color": match_color(line), "alpha": line.get_alpha()}
         )
         for line in filter_artists(ax.get_lines())
     }
@@ -106,10 +245,9 @@ def clean_legend(
     #         collections_to_iterate.append(collection)
     # for collection in collections_to_iterate:
     for collection in filter_artists(ax.collections):
-        # Get the color; assume we use the edge color if the face is transparent
-        facecolors = collection.get_facecolor()
-        has_facecolor = facecolors.size > 0 and facecolors[0][3] > 0
-        color = collection.get_edgecolor() if has_facecolor else facecolors
+        # Reduce the collection's (possibly plural) colors to a single RGBA tuple
+        # so it is a valid `labelcolor` entry: face color when opaque, else edge.
+        color = match_color(collection)
         try:
             collection_maxes[collection.get_label()] = (
                 {
@@ -119,19 +257,23 @@ def clean_legend(
                 if sort
                 else {"color": color}
             )
-        except NotImplementedError:
+        # stackplot/fill_between bands are PolyCollections with no offsets, so
+        # `get_offsets()` yields an empty array and `max([])` raises ValueError;
+        # skip those entries when sorting rather than crashing.
+        except (NotImplementedError, ValueError):
             if not has_printed_not_implemented:
                 print(
-                    "clean_legend not implemented for some elements of figure, skipping"
+                    "clean_legend not implemented for some elements of figure,"
+                    " skipping"
                 )
                 has_printed_not_implemented = True
     all_maxes.update(collection_maxes)
     # Need to iterate through patches to handle the alpha
     patches_dict = {}
     for patch in filter_artists(ax.patches):
-        this_color = patch.get_facecolor()  # Works for a normal histogram
-        if this_color[3] == 0:  # I.e. if the face is transparent, so a step histogram
-            this_color = patch.get_edgecolor()
+        # Face color for a normal (filled) histogram bar; edge color when the
+        # face is transparent, as for a step histogram.
+        this_color = match_color(patch)
         patches_dict[patch.get_label()] = (
             {
                 "max": max([xy[1] for xy in patch.get_xy()]),
@@ -152,12 +294,19 @@ def clean_legend(
             continue
         label = container.get_label()
         data_line = container.lines[0]  # the central marker/line
-        color = data_line.get_color()
+        color = match_color(container)
         if sort:
             ydata = data_line.get_ydata()
-            container_dict[label] = {"max": max(ydata), "color": color, "alpha": data_line.get_alpha()}
+            container_dict[label] = {
+                "max": max(ydata),
+                "color": color,
+                "alpha": data_line.get_alpha(),
+            }
         else:
-            container_dict[label] = {"color": color, "alpha": data_line.get_alpha()}
+            container_dict[label] = {
+                "color": color,
+                "alpha": data_line.get_alpha(),
+            }
     all_maxes.update(container_dict)
     handles, labels = ax.get_legend_handles_labels()
     if sort:
@@ -310,7 +459,9 @@ def add_row_header(ax, text, pad=None, **kwargs):
                     )  # Scale factor to convert pixels to approximate points
             except (AttributeError, TypeError):
                 # Fallback to character counting if rendering fails
-                tick_texts = [label.get_text() for label in ax.yaxis.get_ticklabels()]
+                tick_texts = [
+                    label.get_text() for label in ax.yaxis.get_ticklabels()
+                ]
                 if tick_texts:
                     max_tick_len = max(len(str(t)) for t in tick_texts if t)
                     tick_width = (
@@ -496,7 +647,9 @@ def sequential_cmap(colors_list, name=None, N=512):
 def single_color_cmap(color, linear_opacity=False, name=None, N=512):
     if isinstance(color, str):
         color = colors.to_rgb(color)
-    start_color = (color[0], color[1], color[2], 0) if linear_opacity else (1, 1, 1, 1)
+    start_color = (
+        (color[0], color[1], color[2], 0) if linear_opacity else (1, 1, 1, 1)
+    )
     return sequential_cmap([start_color, color], name=name, N=N)
 
 
@@ -616,3 +769,61 @@ def adjust_luminosity(color, amount):
         c = color
     c = colorsys.rgb_to_hls(*colors.to_rgb(c))
     return colorsys.hls_to_rgb(c[0], 1 - amount * (1 - c[1]), c[2])
+
+
+def n_subplots(
+    n=None,
+    ncols=None,
+    nrows=None,
+    width_per_axes=3,
+    height_per_axes=3,
+    width_padding=0,
+    height_padding=1,
+    titles=[],
+    **kwargs,
+):
+    if not n and not (ncols and nrows):
+        # Have to pass one
+        raise ValueError("Must pass either `n` or (`ncols` and `nrows`)")
+
+    if not nrows and not ncols:
+        # Pick the smallest square that fits, then reduce rows to eliminate empty space
+        ncols = int(np.ceil(np.sqrt(n)))
+        nrows = int(np.ceil(n / ncols))
+    elif nrows and not ncols:
+        ncols = np.ceil(n / nrows)
+    elif ncols and not nrows:
+        nrows = np.ceil(n / ncols)
+
+    nrows = int(nrows)
+    ncols = int(ncols)
+
+    figsize = (
+        width_per_axes * ncols + width_padding,
+        height_per_axes * nrows + height_padding,
+    )
+    fig, axs = plt.subplots(
+        nrows=nrows, ncols=ncols, figsize=figsize, squeeze=False, **kwargs
+    )
+    # Hide unnecessary axes
+    for ax in axs.flatten()[n:]:
+        ax.axis("off")
+    axs = axs[:n]
+
+    # Set the axes titles, if passed
+    for title_ix, title in enumerate(titles):
+        axs.flatten()[title_ix].set_title(title)
+
+    return fig, axs
+
+
+def label_columns(axs, labels):
+    # Set each column's title from the corresponding label
+    for ix in range(len(labels)):
+        axs.flatten()[ix].set_title(labels[ix])
+
+
+def label_rows(axs, labels, **kwargs):
+    # Add a row header to the left-most axis of each row
+    for ix in range(len(labels)):
+        add_row_header(axs[ix, 0], labels[ix], **kwargs)
