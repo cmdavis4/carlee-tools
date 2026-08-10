@@ -3,7 +3,8 @@
 import pytest
 import numpy as np
 import matplotlib
-matplotlib.use('Agg')  # Use non-interactive backend for testing
+
+matplotlib.use("Agg")  # Use non-interactive backend for testing
 import matplotlib.pyplot as plt
 from pathlib import Path
 import tempfile
@@ -14,7 +15,7 @@ def test_clean_legend_basic():
     from carlee_tools.plotting import clean_legend
 
     fig, ax = plt.subplots()
-    ax.plot([1, 2, 3], [1, 2, 3], label='test_line')
+    ax.plot([1, 2, 3], [1, 2, 3], label="test_line")
     result = clean_legend(ax)
 
     assert result is ax
@@ -25,17 +26,17 @@ def test_clean_legend_basic():
 
 def test_get_nth_color():
     """Test getting nth color from color cycle."""
-    from carlee_tools.plotting import get_nth_color
+    from carlee_tools.plotting.colors import get_nth_color
 
     color = get_nth_color(0)
     assert isinstance(color, str)
     # Should return a valid color (hex or named)
-    assert (color.startswith('#') or len(color) > 0)
+    assert color.startswith("#") or len(color) > 0
 
 
 def test_get_next_color():
     """Test getting next color from axes."""
-    from carlee_tools.plotting import get_next_color
+    from carlee_tools.plotting.colors import get_next_color
 
     fig, ax = plt.subplots()
     color1 = get_next_color(ax)
@@ -86,21 +87,8 @@ def test_fig_multisave():
 
 def test_get_cmap():
     """Test getting colormap."""
-    from carlee_tools.plotting import get_cmap
+    from carlee_tools.plotting.colors import get_cmap
     import matplotlib.colors
 
     cmap = get_cmap("viridis")
     assert isinstance(cmap, matplotlib.colors.Colormap)
-
-
-def test_format_t_str():
-    """Test timestamp formatting."""
-    from carlee_tools.plotting import format_t_str
-    import datetime
-
-    dt_obj = datetime.datetime(2020, 1, 1, 12, 30, 0)
-    result = format_t_str(dt_obj)
-
-    assert isinstance(result, str)
-    assert "2020" in result
-    assert "01" in result

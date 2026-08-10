@@ -1,5 +1,7 @@
 """Tests for utilities that require numpy"""
 
+from carlee_tools.spacing import is_evenly_spaced, spacing
+from carlee_tools.types_carlee_tools import maybe_cast_to_float
 import pytest
 
 # Skip all tests in this file if numpy is not available
@@ -8,10 +10,7 @@ pytest.importorskip("numpy")
 import numpy as np
 
 from carlee_tools.utils import (
-    is_evenly_spaced,
-    spacing,
     maybe_random_choice,
-    maybe_cast_to_float,
 )
 
 
@@ -67,7 +66,7 @@ class TestArrayUtils:
 
     def test_maybe_cast_to_float_failure(self):
         """Test that failed cast returns original array"""
-        arr = np.array(['a', 'b', 'c'])
+        arr = np.array(["a", "b", "c"])
         result = maybe_cast_to_float(arr)
-        assert result.dtype.kind == 'U'  # Unicode string
+        assert result.dtype.kind == "U"  # Unicode string
         assert np.array_equal(result, arr)

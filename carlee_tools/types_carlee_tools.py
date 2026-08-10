@@ -38,3 +38,23 @@ try:
     ArrayLike: TypeAlias = Union[list, tuple, np.ndarray]
 except ImportError:
     pass
+
+
+def is_arraylike(maybe_arr):
+    return hasattr(maybe_arr, "__iter__") and not isinstance(maybe_arr, str)
+
+
+def maybe_cast_to_float(arr: np.ndarray) -> np.ndarray:
+    """
+    Attempt to cast array to float, returning original array if cast fails.
+
+    Args:
+        arr: Array to cast
+
+    Returns:
+        Float array if successful, original array otherwise
+    """
+    try:
+        return arr.astype(float)
+    except ValueError:
+        return arr

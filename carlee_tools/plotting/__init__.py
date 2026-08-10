@@ -1,22 +1,22 @@
 """Plotting utilities for atmospheric data visualization."""
 
-from .core import (
-    format_t_str,
-    match_color,
-    last_artist,
-    last_color,
-    clean_legend,
-    contour_legend,
-    get_nth_color,
-    get_next_color,
+from .colors import (
     get_cmap,
-    add_row_header,
-    shifted_colormap,
-    plot_sounding,
-    fig_multisave,
+    get_next_color,
+    get_nth_color,
+    last_color,
+    match_color,
     sequential_cmap,
+    shifted_colormap,
     single_color_cmap,
     transparent_under_cmap,
+)
+from .core import (
+    last_artist,
+    clean_legend,
+    contour_legend,
+    add_row_header,
+    fig_multisave,
     share_axes,
     scale_axes_ticks,
     prepend_axes_letters,
@@ -26,7 +26,6 @@ from .core import (
 from .animation import animate_grouped_xarray
 
 __all__ = [
-    "format_t_str",
     "match_color",
     "last_artist",
     "last_color",
@@ -37,7 +36,6 @@ __all__ = [
     "get_cmap",
     "add_row_header",
     "shifted_colormap",
-    "plot_sounding",
     "fig_multisave",
     "sequential_cmap",
     "single_color_cmap",

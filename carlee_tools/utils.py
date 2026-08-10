@@ -12,6 +12,8 @@ import pickle as pkl
 from functools import wraps
 import xarray as xr
 
+from carlee_tools.types_carlee_tools import is_arraylike
+
 from .types_carlee_tools import PathLike, ArrayLike, NumpyNumeric, DatetimeLike
 
 DEFAULT_SEED = 137504983571204
@@ -592,122 +594,97 @@ def fps(
     return (simulation_minutes_per_second * 60) / simulation_seconds_per_frame
 
 
-def is_evenly_spaced(arr: ArrayLike, exact: bool = True) -> bool:
-    """
-    Check if array elements are evenly spaced.
-
-    Args:
-        arr: Array to check
-        exact: If True, require exact spacing; if False, use approximate comparison
-
-    Returns:
-        True if elements are evenly spaced
-    """
-    if len(arr) > 1:
-        diffs = np.diff(np.array(arr))
-        are_evenly_spaced = (
-            all(diffs == diffs[0]) if exact else np.allclose(diffs, diffs[0])
-        )
-        return are_evenly_spaced
-    else:
-        return True
-
-
-def raise_if_not_evenly_spaced_(arr: ArrayLike, exact: bool = True) -> None:
-    """
-    Raise ValueError if array elements are not evenly spaced.
-
-    Args:
-        arr: Array to check
-        exact: If True, require exact spacing; if False, use approximate comparison
-
-    Raises:
-        ValueError: If array is not evenly spaced
-    """
-    if not is_evenly_spaced(arr, exact=exact):
-        raise ValueError(f"Array is not evenly spaced")
-
-
-def warn_if_not_evenly_spaced(arr: ArrayLike, exact: bool = True) -> None:
-    """
-    Warn if array elements are not evenly spaced.
-
-    Args:
-        arr: Array to check
-        exact: If True, require exact spacing; if False, use approximate comparison
-    """
-    if not is_evenly_spaced(arr, exact=exact):
-        warn(
-            "Uneven array spacing; returning difference between first two"
-            " elements"
-        )
-
-
-def spacing(
-    arr: ArrayLike, raise_if_not_evenly_spaced: bool = True, exact: bool = True
-) -> NumpyNumeric:
-    """
-    Calculate spacing between array elements.
-
-    Args:
-        arr: Array to calculate spacing for
-        raise_if_not_evenly_spaced: Whether to raise error if not evenly spaced
-        exact: If True, require exact spacing; if False, use approximate comparison
-
-    Returns:
-        Spacing between elements as numpy integer or float
-
-    Raises:
-        ValueError: If array is not evenly spaced and raise_if_not_evenly_spaced is True
-    """
-    if raise_if_not_evenly_spaced:
-        raise_if_not_evenly_spaced_(arr=arr, exact=exact)
-    else:
-        warn_if_not_evenly_spaced(arr=arr, exact=exact)
-    return arr[1] - arr[0]
-
-
-def maybe_cast_to_float(arr: np.ndarray) -> np.ndarray:
-    """
-    Attempt to cast array to float, returning original array if cast fails.
-
-    Args:
-        arr: Array to cast
-
-    Returns:
-        Float array if successful, original array otherwise
-    """
-    try:
-        return arr.astype(float)
-    except ValueError:
-        return arr
-
-
 def recursive_reload(module: Any, silent=False) -> None:
-    """Recursively reload a module and all its submodules"""
-    # Get all submodules that start with the module's name
-    module_name = module.__name__
-    submodules_to_reload = []
+    """Recursively reload a module and every already-imported submodule of it.
 
-    for name, mod in sys.modules.items():
-        if name.startswith(module_name + ".") and mod is not None:
-            submodules_to_reload.append((name, mod))
+    Reloading only the top-level package is enough to pick up edits made
+    anywhere in its subtree.
 
-    # Sort by depth (deeper modules first) to avoid dependency issues
-    submodules_to_reload.sort(key=lambda x: x[0].count("."), reverse=True)
+    The subtlety this solves: `importlib.reload()` re-executes a module *in
+    place*, but it does NOT rebind the names that *other* modules imported via
+    `from x import y` — those still point at the old objects. For such
+    references to refresh, a module must be reloaded only AFTER every module it
+    imports from has itself been reloaded. A naive depth-based ordering gets
+    this wrong whenever two modules at the same nesting depth import from each
+    other. Instead we discover the actual import dependencies among the
+    package's modules and reload them in dependency-first (topological) order.
+    """
+    # Name of the top-level module the user asked to reload
+    top_level_name = module.__name__
 
-    # Reload submodules first
-    for name, mod in submodules_to_reload:
+    # Collect the top-level module itself plus every already-imported submodule
+    # of it. The exact-name test catches the package; the "name." prefix test
+    # catches its submodules (and not sibling packages that merely share a prefix).
+    modules_in_package = {
+        name: mod
+        for name, mod in sys.modules.items()
+        if mod is not None
+        and (name == top_level_name or name.startswith(top_level_name + "."))
+    }
+
+    # A module object, used below to distinguish `import pkg.sub` attributes
+    # (whose value IS a module) from `from pkg.sub import f` attributes.
+    module_type = type(module)
+
+    # Build the import-dependency graph: for each module, which *other* modules
+    # in this package does it hold references into? Two reference styles matter:
+    #   - `import pkg.sub`        -> the attribute value is itself a module object
+    #   - `from pkg.sub import f` -> the attribute is some object (function,
+    #                                class, instance, ...) whose `__module__`
+    #                                names the module that defined it
+    module_dependencies = {name: set() for name in modules_in_package}
+    for name, mod in modules_in_package.items():
+        for attribute_value in vars(mod).values():
+            if isinstance(attribute_value, module_type):
+                # Plain `import`: the attribute is a submodule object
+                dependency_name = getattr(attribute_value, "__name__", None)
+            else:
+                # `from ... import ...`: trace the object back to its home module
+                dependency_name = getattr(attribute_value, "__module__", None)
+            # Only keep edges to other modules within this package (no self-edges)
+            if (
+                dependency_name in modules_in_package
+                and dependency_name != name
+            ):
+                module_dependencies[name].add(dependency_name)
+
+    # Topologically sort so each module is reloaded only after the modules it
+    # depends on (Kahn's algorithm). Depth = number of dots in the dotted name.
+    depth_of = lambda name: name.count(".")
+    reload_order = []
+    remaining_dependencies = {
+        name: set(deps) for name, deps in module_dependencies.items()
+    }
+    while remaining_dependencies:
+        # A module is "ready" once none of its dependencies are still waiting
+        ready_to_reload = [
+            name
+            for name, deps in remaining_dependencies.items()
+            if not (deps & remaining_dependencies.keys())
+        ]
+        if not ready_to_reload:
+            # Nothing is free of unsatisfied deps -> an import cycle (Python
+            # packages can legally contain these). Break it by taking the
+            # deepest remaining module so we always make forward progress.
+            ready_to_reload = [max(remaining_dependencies, key=depth_of)]
+        # Deepest-first within the ready set gives a stable, sensible order
+        # (ready modules never depend on each other, so this is safe)
+        ready_to_reload.sort(key=depth_of, reverse=True)
+        for name in ready_to_reload:
+            reload_order.append(name)
+            del remaining_dependencies[name]
+
+    # Reload in dependency order. The top-level package naturally lands last,
+    # since everything else sits (directly or transitively) beneath it.
+    for name in reload_order:
         try:
-            importlib.reload(mod)
+            importlib.reload(modules_in_package[name])
         except Exception as e:
             if not silent:
                 print(f"Failed to reload {name}: {e}")
 
-    # Finally reload the main module
-    importlib.reload(module)
     if not silent:
-        print(f"Reloaded {module_name}")
+        print(f"Reloaded {top_level_name} ({len(reload_order)} modules)")
 
 
 def delete_directory_contents(
@@ -876,10 +853,6 @@ def read_or_cache_to(
         return wrapper
 
     return decorator
-
-
-def is_arraylike(maybe_arr):
-    return hasattr(maybe_arr, "__iter__") and not isinstance(maybe_arr, str)
 
 
 def list_if_single(maybe_single):
