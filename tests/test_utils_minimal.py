@@ -3,12 +3,12 @@
 import datetime as dt
 from pathlib import Path
 
-from carlee_tools.dt import current_dt_str, dt_to_str, str_to_dt
+from carlee_tools.time import current_dt_str, dt_to_str, str_to_dt
 from carlee_tools.io import append_to_stem, prepend_to_stem
 from carlee_tools.kv import to_kv_pairs, to_kv_str
 import pytest
 
-from carlee_tools.dt import (
+from carlee_tools.time import (
     NUMERICAL_DT_FORMAT,
 )
 
